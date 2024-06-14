@@ -41,20 +41,9 @@ class _FirehoseWriteFn(beam.DoFn):
 
 
 class WriteToFirehose(beam.PTransform):
-    def __init__(self, delivery_stream_name, client=None, options=None) -> None:
+    def __init__(self, options, delivery_stream_name):
         super().__init__()
-        if client is None and options is None:
-            raise ValueError("Must provide one of client or options")
-        if client is not None:
-            self.client = client
-        elif BOTO3_INSTALLED:
-            self.client = FirehoseClient(options=options)
-        else:
-            message = (
-                "AWS dependencies are not installed, and no alternative "
-                "client was provided to Firehose PyIO."
-            )
-            raise RuntimeError(message)
+        self.client = FirehoseClient(options=options)
         self.delivery_stream_name = delivery_stream_name
 
     def expand(self, input):

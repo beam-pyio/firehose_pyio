@@ -80,20 +80,23 @@ class FirehoseClient(object):
             aws_session_token=session_token,
         )
 
-    def describe_delivery_stream(self, delivery_stream_name: str):
+    def is_delivery_stream_active(self, delivery_stream_name: str):
         try:
             boto_response = self.client.describe_delivery_stream(
                 DeliveryStreamName=delivery_stream_name
             )
-            return boto_response
+            return (
+                boto_response["DeliveryStreamDescription"]["DeliveryStreamStatus"]
+                == "ACTIVE"
+            )
         except Exception as e:
             raise Boto3ClientError(str(e), get_http_error_code(e))
 
-    def put_record_batch(self, delivery_stream_name: str, bytes: typing.List[bytes]):
+    def put_record_batch(self, delivery_stream_name: str, records: typing.List[str]):
         try:
             boto_response = self.client.put_record_batch(
                 DeliveryStreamName=delivery_stream_name,
-                Records=[{"Data": byte for byte in bytes}],
+                Records=[{"Data": record for record in records}],
             )
             return boto_response
         except Exception as e:
