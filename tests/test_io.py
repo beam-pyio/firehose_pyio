@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 
-import pytest
 import unittest
 import boto3
 from moto import mock_aws
