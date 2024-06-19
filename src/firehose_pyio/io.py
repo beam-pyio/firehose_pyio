@@ -15,7 +15,9 @@
 # limitations under the License.
 #
 
+import typing
 import apache_beam as beam
+
 from firehose_pyio.boto3_client import FirehoseClient
 from firehose_pyio.options import FirehoseOptions
 
@@ -25,21 +27,21 @@ class _FirehoseWriteFn(beam.DoFn):
     an Amazon Firehose delivery stream.
 
     Args:
-        options (FirehoseOptions | dict): Options to create a boto3 Firehose client
+        options (typing.Union[FirehoseOptions, dict]: Options to create a boto3 Firehose client
         delivery_stream_name (str): Amazon Firehose delivery stream name
         jsonify (bool): Whether to convert records into JSON. Defaults to False.
     """
 
     def __init__(
         self,
-        options: FirehoseOptions | dict,
+        options: typing.Union[FirehoseOptions, dict],
         delivery_stream_name: str,
         jsonify: bool,
     ):
         """Constructor of the sink connector of Firehose
 
         Args:
-            options (FirehoseOptions | dict): Options to create a boto3 Firehose client
+            options (typing.Union[FirehoseOptions, dict]: Options to create a boto3 Firehose client
             delivery_stream_name (str): Amazon Firehose delivery stream name
             jsonify (bool): Whether to convert records into JSON. Defaults to False.
         """
