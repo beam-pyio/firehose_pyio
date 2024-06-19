@@ -85,6 +85,37 @@ class TestBoto3Client(unittest.TestCase):
             123,
         )
 
+    def test_put_record_batch_without_converting_invalid_typed_records_to_json(
+        self,
+    ):
+        # Parameter validation failed: valid types: <class 'bytes'>, <class 'bytearray'>, file-like object
+        records = [1, 2, 3]
+        self.assertRaises(
+            Boto3ClientError,
+            self.fh_client.put_record_batch,
+            self.delivery_stream_name,
+            records,
+        )
+
+    def test_put_record_batch_with_converting_unconvertable_records_to_json(self):
+        records = [datetime.datetime.now()]
+        # Parameter validation failed: valid types: <class 'bytes'>, <class 'bytearray'>, file-like object
+        self.assertRaises(
+            Boto3ClientError,
+            self.fh_client.put_record_batch,
+            self.delivery_stream_name,
+            records,
+            False,
+        )
+        # Object of type datetime is not JSON serializable
+        self.assertRaises(
+            Boto3ClientError,
+            self.fh_client.put_record_batch,
+            self.delivery_stream_name,
+            records,
+            True,
+        )
+
     def test_put_record_batch_without_converting_records_to_json(self):
         records = ["one", "two", "three"]
         boto_response = self.fh_client.put_record_batch(
@@ -137,18 +168,6 @@ class TestBoto3Client(unittest.TestCase):
         )
         self.assertEqual(s3_response["Body"].read().decode(), '""')
 
-    def test_put_record_batch_without_converting_invalid_typed_records_to_json(
-        self,
-    ):
-        # Parameter validation failed: valid types: <class 'bytes'>, <class 'bytearray'>, file-like object
-        records = [1, 2, 3]
-        self.assertRaises(
-            Boto3ClientError,
-            self.fh_client.put_record_batch,
-            self.delivery_stream_name,
-            records,
-        )
-
     def test_put_record_batch_with_converting_invalid_typed_records_to_json(self):
         records = [1, 2, 3]
         boto_response = self.fh_client.put_record_batch(
@@ -161,13 +180,3 @@ class TestBoto3Client(unittest.TestCase):
             Bucket=self.bucket_name, Key=bucket_objects["Contents"][0]["Key"]
         )
         self.assertEqual(s3_response["Body"].read().decode(), "123")
-
-    def test_put_record_batch_with_converting_unconvertable_records_to_json(self):
-        records = [datetime.datetime.now()]
-        # Object of type datetime is not JSON serializable
-        self.assertRaises(
-            Boto3ClientError,
-            self.fh_client.put_record_batch,
-            self.delivery_stream_name,
-            records,
-        )
