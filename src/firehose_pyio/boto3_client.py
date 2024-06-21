@@ -41,7 +41,12 @@ class FirehoseClient(object):
     Wrapper for boto3 library
     """
 
-    def __init__(self, options):
+    def __init__(self, options: typing.Union[FirehoseOptions, dict]):
+        """Constructor of the FirehoseClient
+
+        Args:
+            options (Union[FirehoseOptions, dict]): Options to create a boto3 Firehose client
+        """
         assert boto3 is not None, "Missing boto3 requirement"
         if isinstance(options, pipeline_options.PipelineOptions):
             options = options.view_as(FirehoseOptions)

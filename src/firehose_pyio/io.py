@@ -17,6 +17,7 @@
 
 import typing
 import apache_beam as beam
+from apache_beam.pvalue import PCollection
 
 from firehose_pyio.boto3_client import FirehoseClient
 from firehose_pyio.options import FirehoseOptions
@@ -27,7 +28,7 @@ class _FirehoseWriteFn(beam.DoFn):
     an Amazon Firehose delivery stream.
 
     Args:
-        options (typing.Union[FirehoseOptions, dict]: Options to create a boto3 Firehose client
+        options (Union[FirehoseOptions, dict]): Options to create a boto3 Firehose client
         delivery_stream_name (str): Amazon Firehose delivery stream name
         jsonify (bool): Whether to convert records into JSON. Defaults to False.
     """
@@ -41,7 +42,7 @@ class _FirehoseWriteFn(beam.DoFn):
         """Constructor of the sink connector of Firehose
 
         Args:
-            options (typing.Union[FirehoseOptions, dict]: Options to create a boto3 Firehose client
+            options (Union[FirehoseOptions, dict]): Options to create a boto3 Firehose client
             delivery_stream_name (str): Amazon Firehose delivery stream name
             jsonify (bool): Whether to convert records into JSON. Defaults to False.
         """
@@ -69,15 +70,25 @@ class WriteToFirehose(beam.PTransform):
     """A transform that puts records into an Amazon Firehose delivery stream
 
     Takes an input PCollection and put them in batch using the boto3 package.
-    Fore more information, visit https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/firehose/client/put_record_batch.html
+    For more information, visit https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/firehose/client/put_record_batch.html
+
+    Args:
+        delivery_stream_name (str): Amazon Firehose delivery stream name
+        jsonify (bool): Whether to convert records into JSON. Defaults to False.
     """
 
     def __init__(self, delivery_stream_name: str, jsonify: bool = False):
+        """_summary_
+
+        Args:
+            delivery_stream_name (str): Amazon Firehose delivery stream name
+            jsonify (bool): Whether to convert records into JSON. Defaults to False.
+        """
         super().__init__()
         self.delivery_stream_name = delivery_stream_name
         self.jsonify = jsonify
 
-    def expand(self, pcoll):
+    def expand(self, pcoll: PCollection):
         options = pcoll.pipeline.options.view_as(FirehoseOptions)
         return pcoll | beam.ParDo(
             _FirehoseWriteFn(options, self.delivery_stream_name, self.jsonify)
