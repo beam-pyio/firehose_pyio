@@ -1,5 +1,11 @@
 # firehose_pyio
 
+![doc](https://github.com/beam-pyio/firehose_pyio/workflows/doc/badge.svg)
+![test](https://github.com/beam-pyio/firehose_pyio/workflows/test/badge.svg)
+[![release](https://img.shields.io/github/release/beam-pyio/firehose_pyio.svg)](https://github.com/beam-pyio/firehose_pyio/releases)
+[![python](https://img.shields.io/badge/python-3.8%2C%203.9%2C%203.10%2C%203.11-blue)]()
+[![os](https://img.shields.io/badge/OS-Ubuntu%2C%20Mac%2C%20Windows-purple)]()
+
 Apache Beam Python I/O connector for Amazon Firehose
 
 ## Installation
