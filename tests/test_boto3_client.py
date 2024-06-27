@@ -21,7 +21,7 @@ import boto3
 from moto import mock_aws
 from moto.core import DEFAULT_ACCOUNT_ID as ACCOUNT_ID
 
-from firehose_pyio.boto3_client import FirehoseClient, Boto3ClientError
+from firehose_pyio.boto3_client import FirehoseClient, FirehoseClientError
 
 
 def sample_s3_dest_config(bucket_name):
@@ -65,7 +65,7 @@ class TestBoto3Client(unittest.TestCase):
         self.assertEqual(is_active, True)
         # ResourceNotFoundException
         self.assertRaises(
-            Boto3ClientError,
+            FirehoseClientError,
             self.fh_client.is_delivery_stream_active,
             "non-existing-delivery-stream",
         )
@@ -74,15 +74,15 @@ class TestBoto3Client(unittest.TestCase):
         self.assertRaises(
             TypeError,
             self.fh_client.put_record_batch,
-            self.delivery_stream_name,
             "abc",
+            self.delivery_stream_name,
         )
 
         self.assertRaises(
             TypeError,
             self.fh_client.put_record_batch,
-            self.delivery_stream_name,
             123,
+            self.delivery_stream_name,
         )
 
     def test_put_record_batch_without_converting_invalid_typed_records_to_json(
@@ -91,35 +91,35 @@ class TestBoto3Client(unittest.TestCase):
         # Parameter validation failed: valid types: <class 'bytes'>, <class 'bytearray'>, file-like object
         records = [1, 2, 3]
         self.assertRaises(
-            Boto3ClientError,
+            FirehoseClientError,
             self.fh_client.put_record_batch,
-            self.delivery_stream_name,
             records,
+            self.delivery_stream_name,
         )
 
     def test_put_record_batch_with_converting_unconvertable_records_to_json(self):
         records = [datetime.datetime.now()]
         # Parameter validation failed: valid types: <class 'bytes'>, <class 'bytearray'>, file-like object
         self.assertRaises(
-            Boto3ClientError,
+            FirehoseClientError,
             self.fh_client.put_record_batch,
-            self.delivery_stream_name,
             records,
+            self.delivery_stream_name,
             False,
         )
         # Object of type datetime is not JSON serializable
         self.assertRaises(
-            Boto3ClientError,
+            FirehoseClientError,
             self.fh_client.put_record_batch,
-            self.delivery_stream_name,
             records,
+            self.delivery_stream_name,
             True,
         )
 
     def test_put_record_batch_without_converting_records_to_json(self):
         records = ["one", "two", "three"]
         boto_response = self.fh_client.put_record_batch(
-            self.delivery_stream_name, records, False
+            records, self.delivery_stream_name, False
         )
         self.assertEqual(boto_response["FailedPutCount"], 0)
 
@@ -132,7 +132,7 @@ class TestBoto3Client(unittest.TestCase):
     def test_put_record_batch_with_converting_records_to_json(self):
         records = ["one", "two", "three"]
         boto_response = self.fh_client.put_record_batch(
-            self.delivery_stream_name, records, True
+            records, self.delivery_stream_name, True
         )
         self.assertEqual(boto_response["FailedPutCount"], 0)
 
@@ -145,7 +145,7 @@ class TestBoto3Client(unittest.TestCase):
     def test_put_record_batch_without_converting_empty_record_to_json(self):
         records = [""]
         boto_response = self.fh_client.put_record_batch(
-            self.delivery_stream_name, records, False
+            records, self.delivery_stream_name, False
         )
         self.assertEqual(boto_response["FailedPutCount"], 0)
 
@@ -158,7 +158,7 @@ class TestBoto3Client(unittest.TestCase):
     def test_put_record_batch_with_converting_empty_record_to_json(self):
         records = [""]
         boto_response = self.fh_client.put_record_batch(
-            self.delivery_stream_name, records, True
+            records, self.delivery_stream_name, True
         )
         self.assertEqual(boto_response["FailedPutCount"], 0)
 
@@ -171,7 +171,7 @@ class TestBoto3Client(unittest.TestCase):
     def test_put_record_batch_with_converting_invalid_typed_records_to_json(self):
         records = [1, 2, 3]
         boto_response = self.fh_client.put_record_batch(
-            self.delivery_stream_name, records, True
+            records, self.delivery_stream_name, True
         )
         self.assertEqual(boto_response["FailedPutCount"], 0)
 

@@ -20,11 +20,12 @@ import boto3
 from moto import mock_aws
 from moto.core import DEFAULT_ACCOUNT_ID as ACCOUNT_ID
 import apache_beam as beam
+from apache_beam.transforms.util import BatchElements
 from apache_beam.options import pipeline_options
 from apache_beam.testing.test_pipeline import TestPipeline
 from apache_beam.testing.util import assert_that, equal_to
 
-from firehose_pyio.boto3_client import FirehoseClient, Boto3ClientError
+from firehose_pyio.boto3_client import FirehoseClient, FirehoseClientError
 from firehose_pyio.io import WriteToFirehose
 
 
@@ -72,6 +73,8 @@ class TestWriteToFirehose(unittest.TestCase):
 
         self.pipeline_opts = pipeline_options.PipelineOptions(
             [
+                "--runner",
+                "FlinkRunner",
                 "--aws_access_key_id",
                 "testing",
                 "--aws_secret_access_key",
@@ -91,18 +94,16 @@ class TestWriteToFirehose(unittest.TestCase):
                     p
                     | beam.Create(["one", "two", "three", "four"])
                     | WriteToFirehose(self.delivery_stream_name, True)
-                    | beam.Map(lambda e: e["FailedPutCount"])
                 )
 
     def test_write_to_firehose_with_invalid_typed_list_elements(self):
         # parameter validation error if not <class 'bytes'>, <class 'bytearray'>, file-like object
-        with self.assertRaises(Boto3ClientError):
+        with self.assertRaises(FirehoseClientError):
             with TestPipeline(options=self.pipeline_opts) as p:
                 (
                     p
                     | beam.Create([[1, 2, 3, 4]])
                     | WriteToFirehose(self.delivery_stream_name, False)
-                    | beam.Map(lambda e: e["FailedPutCount"])
                 )
 
     def test_write_to_firehose_with_list_elements(self):
@@ -111,9 +112,8 @@ class TestWriteToFirehose(unittest.TestCase):
                 p
                 | beam.Create([["one", "two", "three", "four"], [1, 2, 3, 4]])
                 | WriteToFirehose(self.delivery_stream_name, True)
-                | beam.Map(lambda e: e["FailedPutCount"])
             )
-            assert_that(output, equal_to([0, 0]))
+            assert_that(output, equal_to([]))
 
         bucket_contents = collect_bucket_contents(self.s3_client, self.bucket_name)
         self.assertSetEqual(
@@ -128,9 +128,35 @@ class TestWriteToFirehose(unittest.TestCase):
                 | WriteToFirehose(self.delivery_stream_name, True)
                 | beam.Map(lambda e: e["FailedPutCount"])
             )
-            assert_that(output, equal_to([0, 0]))
+            assert_that(output, equal_to([]))
 
         bucket_contents = collect_bucket_contents(self.s3_client, self.bucket_name)
         self.assertSetEqual(
             set(bucket_contents), set(['"one""two""three""four"', "1234"])
         )
+
+
+class TestRetryLogic(unittest.TestCase):
+    def test_write_to_firehose_retry_with_no_failed_element(self):
+        with TestPipeline() as p:
+            output = (
+                p
+                | beam.Create(["one", "two", "three", "four"])
+                | BatchElements(min_batch_size=4)
+                | WriteToFirehose(
+                    "non-existing-delivery-stream", False, 3, {"num_keep": 2}
+                )
+            )
+            assert_that(output, equal_to([]))
+
+    def test_write_to_firehose_retry_with_failed_elements(self):
+        with TestPipeline() as p:
+            output = (
+                p
+                | beam.Create(["one", "two", "three", "four"])
+                | BatchElements(min_batch_size=4)
+                | WriteToFirehose(
+                    "non-existing-delivery-stream", False, 3, {"num_keep": 1}
+                )
+            )
+            assert_that(output, equal_to(["four"]))

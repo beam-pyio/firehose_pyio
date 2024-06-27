@@ -19,48 +19,73 @@ import typing
 import apache_beam as beam
 from apache_beam.pvalue import PCollection
 
-from firehose_pyio.boto3_client import FirehoseClient
+from firehose_pyio.boto3_client import FirehoseClient, FakeFirehoseClient
 from firehose_pyio.options import FirehoseOptions
+
+__all__ = ["WriteToFirehose"]
 
 
 class _FirehoseWriteFn(beam.DoFn):
-    """Create the connector can put records in batch to
-    an Amazon Firehose delivery stream.
+    """Create the connector can put records in batch to an Amazon Firehose delivery stream.
 
     Args:
-        options (Union[FirehoseOptions, dict]): Options to create a boto3 Firehose client
-        delivery_stream_name (str): Amazon Firehose delivery stream name
+        delivery_stream_name (str): Amazon Firehose delivery stream name.
         jsonify (bool): Whether to convert records into JSON. Defaults to False.
+        max_retry (int): Maximum number of retry to put failed records.
+        options (Union[FirehoseOptions, dict]): Options to create a boto3 Firehose client.
+        fake_config (dict, optional): Config parameters when using FakeFirehoseClient for testing. Defaults to None.
     """
 
     def __init__(
         self,
-        options: typing.Union[FirehoseOptions, dict],
         delivery_stream_name: str,
         jsonify: bool,
+        max_retry: int,
+        options: typing.Union[FirehoseOptions, dict],
+        fake_config: dict,
     ):
-        """Constructor of the sink connector of Firehose
+        """Constructor of _FirehoseWriteFn
 
         Args:
-            options (Union[FirehoseOptions, dict]): Options to create a boto3 Firehose client
-            delivery_stream_name (str): Amazon Firehose delivery stream name
+            delivery_stream_name (str): Amazon Firehose delivery stream name.
             jsonify (bool): Whether to convert records into JSON. Defaults to False.
+            max_retry (int): Maximum number of retry to put failed records.
+            options (Union[FirehoseOptions, dict]): Options to create a boto3 Firehose client.
+            fake_config (dict, optional): Config parameters when using FakeFirehoseClient for testing.
         """
         super().__init__()
-        self.options = options
         self.delivery_stream_name = delivery_stream_name
         self.jsonify = jsonify
+        self.max_retry = max_retry
+        self.options = options
+        self.fake_config = fake_config
 
     def start_bundle(self):
-        self.client = FirehoseClient(self.options)
-        assert self.client.is_delivery_stream_active(self.delivery_stream_name) is True
+        if not self.fake_config:
+            self.client = FirehoseClient(self.options)
+            assert (
+                self.client.is_delivery_stream_active(self.delivery_stream_name) is True
+            )
+        else:
+            self.client = FakeFirehoseClient(self.fake_config)
 
     def process(self, element):
         if isinstance(element, tuple):
             element = element[1]
-        yield self.client.put_record_batch(
-            self.delivery_stream_name, element, self.jsonify
-        )
+        loop, failed = 0, []
+        while loop < self.max_retry:
+            responses = self.client.put_record_batch(
+                element, self.delivery_stream_name, self.jsonify
+            )["RequestResponses"]
+            for index, result in enumerate(responses):
+                if "RecordId" not in result:
+                    failed.append(element[index])
+            if len(failed) == 0 or (self.max_retry - loop == 1):
+                break
+            element = failed
+            failed = []
+            loop += 1
+        return failed
 
     def finish_bundle(self):
         pass
@@ -70,26 +95,46 @@ class WriteToFirehose(beam.PTransform):
     """A transform that puts records into an Amazon Firehose delivery stream
 
     Takes an input PCollection and put them in batch using the boto3 package.
-    For more information, visit https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/firehose/client/put_record_batch.html
+    For more information, visit the `Boto3 Documentation <https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/firehose/client/put_record_batch.html>`__.
+
+    Note that, if the PCollection element is a tuple (i.e. keyed stream), only the value is used to put records in batch.
 
     Args:
-        delivery_stream_name (str): Amazon Firehose delivery stream name
-        jsonify (bool): Whether to convert records into JSON. Defaults to False.
+        delivery_stream_name (str): Amazon Firehose delivery stream name.
+        jsonify (bool): Whether to convert records into JSON.
+        max_retry (int): Maximum number of retry to put failed records. Defaults to 3.
+        fake_config (dict, optional): Config parameters when using FakeFirehoseClient for testing. Defaults to {}.
     """
 
-    def __init__(self, delivery_stream_name: str, jsonify: bool = False):
-        """_summary_
+    def __init__(
+        self,
+        delivery_stream_name: str,
+        jsonify: bool,
+        max_retry: int = 3,
+        fake_config: dict = {},
+    ):
+        """Constructor of the transform that puts records into an Amazon Firehose delivery stream
 
         Args:
-            delivery_stream_name (str): Amazon Firehose delivery stream name
-            jsonify (bool): Whether to convert records into JSON. Defaults to False.
+            delivery_stream_name (str): Amazon Firehose delivery stream name.
+            jsonify (bool): Whether to convert records into JSON.
+            max_retry (int): Maximum number of retry to put failed records. Defaults to 3.
+            fake_config (dict, optional): Config parameters when using FakeFirehoseClient for testing. Defaults to {}.
         """
         super().__init__()
         self.delivery_stream_name = delivery_stream_name
         self.jsonify = jsonify
+        self.max_retry = max_retry
+        self.fake_config = fake_config
 
     def expand(self, pcoll: PCollection):
         options = pcoll.pipeline.options.view_as(FirehoseOptions)
         return pcoll | beam.ParDo(
-            _FirehoseWriteFn(options, self.delivery_stream_name, self.jsonify)
+            _FirehoseWriteFn(
+                self.delivery_stream_name,
+                self.jsonify,
+                self.max_retry,
+                options,
+                self.fake_config,
+            )
         )
