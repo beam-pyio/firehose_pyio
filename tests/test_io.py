@@ -73,8 +73,6 @@ class TestWriteToFirehose(unittest.TestCase):
 
         self.pipeline_opts = pipeline_options.PipelineOptions(
             [
-                "--runner",
-                "FlinkRunner",
                 "--aws_access_key_id",
                 "testing",
                 "--aws_secret_access_key",
