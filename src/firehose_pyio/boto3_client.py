@@ -18,10 +18,11 @@
 import json
 import typing
 import boto3
-from collections.abc import Iterable
 from apache_beam.options import pipeline_options
 
 from firehose_pyio.options import FirehoseOptions
+
+__all__ = ["FirehoseClient", "FirehoseClientError"]
 
 
 def get_http_error_code(exc):
@@ -30,7 +31,7 @@ def get_http_error_code(exc):
     return None
 
 
-class Boto3ClientError(Exception):
+class FirehoseClientError(Exception):
     def __init__(self, message=None, code=None):
         self.message = message
         self.code = code
@@ -88,7 +89,7 @@ class FirehoseClient(object):
             delivery_stream_name (str): Amazon Firehose delivery stream name
 
         Raises:
-            Boto3ClientError: Boto3 client error
+            FirehoseClientError: Firehose client error
 
         Returns:
             (bool): Whether or not the given Firehose delivery stream is active
@@ -102,26 +103,26 @@ class FirehoseClient(object):
                 == "ACTIVE"
             )
         except Exception as e:
-            raise Boto3ClientError(str(e), get_http_error_code(e))
+            raise FirehoseClientError(str(e), get_http_error_code(e))
 
     def put_record_batch(
-        self, delivery_stream_name: str, records: typing.Iterable, jsonify: bool = False
+        self, records: list, delivery_stream_name: str, jsonify: bool = False
     ):
         """Put records to an Amazon Firehose delivery stream in batch
 
         Args:
+            records (list): Records to put into a Firehose delivery stream
             delivery_stream_name (str): Amazon Firehose delivery stream name
-            records (typing.Iterable): Records to put into a Firehose delivery stream
             jsonify (bool, optional): Whether to convert records into JSON. Defaults to False.
 
         Raises:
-            Boto3ClientError: Boto3 client error
+            FirehoseClientError: Firehose client error
 
         Returns:
             (Object): Boto3 response message
         """
-        if not isinstance(records, Iterable) or isinstance(records, str):
-            raise TypeError("Records should be iterable except for string.")
+        if not isinstance(records, list):
+            raise TypeError("Records should be a list.")
         try:
             boto_response = self.client.put_record_batch(
                 DeliveryStreamName=delivery_stream_name,
@@ -129,4 +130,28 @@ class FirehoseClient(object):
             )
             return boto_response
         except Exception as e:
-            raise Boto3ClientError(str(e), get_http_error_code(e))
+            raise FirehoseClientError(str(e), get_http_error_code(e))
+
+
+class FakeFirehoseClient:
+    def __init__(self, fake_config: dict):
+        self.num_keep = fake_config.get("num_keep", 0)
+
+    def put_record_batch(
+        self, records: list, delivery_stream_name: str, jsonify: bool = False
+    ):
+        if not isinstance(records, list):
+            raise TypeError("Records should be a list.")
+        request_responses = []
+        for index, _ in enumerate(records):
+            if index < self.num_keep:
+                request_responses.append({"RecordId": index})
+            else:
+                request_responses.append(
+                    {"ErrorCode": "Error", "ErrorMessage": "This error"}
+                )
+        return {
+            "FailedPutCount": ["RecordId" in r for r in request_responses],
+            "Encrypted": False,
+            "RequestResponses": request_responses,
+        }

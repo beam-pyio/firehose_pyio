@@ -7,8 +7,20 @@ license = "Apache License 2.0"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.8, <3.12"
-urllib3 = "< 2"
+python = ">=3.8, <3.13"
+urllib3 = "<2"
+numpy = [
+    {version = "1.24.4", python = "3.8"},
+    {version = ">1.24.4", python = ">=3.9, <3.13"}
+]
+scipy = [
+    {version = "1.6.1", python = "3.8"},
+    {version = ">1.6.1", python = ">=3.9, <3.13"}
+]
+pandas = [
+    {version = "2.0.3", python = "3.8"},
+    {version = ">2.0.3", python = ">=3.9, <3.13"}
+]
 apache-beam = {extras = ["aws"], version = ">=2.19.0"}
 
 [tool.poetry.dev-dependencies]
