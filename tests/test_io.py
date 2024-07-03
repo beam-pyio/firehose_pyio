@@ -20,6 +20,7 @@ import boto3
 from moto import mock_aws
 from moto.core import DEFAULT_ACCOUNT_ID as ACCOUNT_ID
 import apache_beam as beam
+from apache_beam.metrics.metric import MetricsFilter
 from apache_beam.transforms.util import BatchElements
 from apache_beam import GroupIntoBatches
 from apache_beam.options import pipeline_options
@@ -27,7 +28,7 @@ from apache_beam.testing.test_pipeline import TestPipeline
 from apache_beam.testing.util import assert_that, equal_to
 
 from firehose_pyio.boto3_client import FirehoseClient, FirehoseClientError
-from firehose_pyio.io import WriteToFirehose
+from firehose_pyio.io import WriteToFirehose, _FirehoseWriteFn
 
 
 def sample_s3_dest_config(bucket_name):
@@ -208,3 +209,83 @@ class TestRetryLogic(unittest.TestCase):
                 )
             )
             assert_that(output, equal_to(["four"]))
+
+
+class TestMetrics(unittest.TestCase):
+    def test_metrics_with_no_failed_element(self):
+        pipeline = TestPipeline()
+        output = (
+            pipeline
+            | beam.Create(["one", "two", "three", "four"])
+            | BatchElements(min_batch_size=4)
+            | WriteToFirehose("non-existing-delivery-stream", False, 3, {"num_keep": 2})
+        )
+        assert_that(output, equal_to([]))
+
+        res = pipeline.run()
+        res.wait_until_finish()
+
+        ## verify total_elements_count
+        metric_results = res.metrics().query(
+            MetricsFilter().with_metric(_FirehoseWriteFn.total_elements_count)
+        )
+        total_elements_count = metric_results["counters"][0]
+        self.assertEqual(total_elements_count.key.metric.name, "total_elements_count")
+        self.assertEqual(total_elements_count.committed, 4)
+
+        ## verify succeeded_elements_count
+        metric_results = res.metrics().query(
+            MetricsFilter().with_metric(_FirehoseWriteFn.succeeded_elements_count)
+        )
+        succeeded_elements_count = metric_results["counters"][0]
+        self.assertEqual(
+            succeeded_elements_count.key.metric.name, "succeeded_elements_count"
+        )
+        self.assertEqual(succeeded_elements_count.committed, 4)
+
+        ## verify failed_elements_count
+        metric_results = res.metrics().query(
+            MetricsFilter().with_metric(_FirehoseWriteFn.failed_elements_count)
+        )
+        failed_elements_count = metric_results["counters"][0]
+        self.assertEqual(failed_elements_count.key.metric.name, "failed_elements_count")
+        self.assertEqual(failed_elements_count.committed, 0)
+
+    def test_metrics_with_failed_element(self):
+        pipeline = TestPipeline()
+        output = (
+            pipeline
+            | beam.Create(["one", "two", "three", "four"])
+            | BatchElements(min_batch_size=4)
+            | WriteToFirehose("non-existing-delivery-stream", False, 3, {"num_keep": 1})
+        )
+        assert_that(output, equal_to(["four"]))
+
+        res = pipeline.run()
+        res.wait_until_finish()
+
+        ## verify total_elements_count
+        metric_results = res.metrics().query(
+            MetricsFilter().with_metric(_FirehoseWriteFn.total_elements_count)
+        )
+        total_elements_count = metric_results["counters"][0]
+        self.assertEqual(total_elements_count.key.metric.name, "total_elements_count")
+        self.assertEqual(total_elements_count.committed, 4)
+
+        ## verify succeeded_elements_count
+        metric_results = res.metrics().query(
+            MetricsFilter().with_metric(_FirehoseWriteFn.succeeded_elements_count)
+        )
+        succeeded_elements_count = metric_results["counters"][0]
+        self.assertEqual(
+            succeeded_elements_count.key.metric.name, "succeeded_elements_count"
+        )
+        self.assertEqual(succeeded_elements_count.committed, 3)
+
+        ## verify failed_elements_count
+        metric_results = res.metrics().query(
+            MetricsFilter().with_metric(_FirehoseWriteFn.failed_elements_count)
+        )
+        failed_elements_count = metric_results["counters"][0]
+        self.assertEqual(failed_elements_count.key.metric.name, "failed_elements_count")
+        self.assertEqual(failed_elements_count.committed, 1)
