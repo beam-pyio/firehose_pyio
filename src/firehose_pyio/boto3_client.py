@@ -39,14 +39,14 @@ class FirehoseClientError(Exception):
 
 class FirehoseClient(object):
     """
-    Wrapper for boto3 library
+    Wrapper for boto3 library.
     """
 
     def __init__(self, options: typing.Union[FirehoseOptions, dict]):
-        """Constructor of the FirehoseClient
+        """Constructor of the FirehoseClient.
 
         Args:
-            options (Union[FirehoseOptions, dict]): Options to create a boto3 Firehose client
+            options (Union[FirehoseOptions, dict]): Options to create a boto3 Firehose client.
         """
         assert boto3 is not None, "Missing boto3 requirement"
         if isinstance(options, pipeline_options.PipelineOptions):
@@ -83,16 +83,16 @@ class FirehoseClient(object):
         )
 
     def is_delivery_stream_active(self, delivery_stream_name: str):
-        """Check if an Amazon Firehose delivery stream is active
+        """Check if an Amazon Firehose delivery stream is active.
 
         Args:
-            delivery_stream_name (str): Amazon Firehose delivery stream name
+            delivery_stream_name (str): Amazon Firehose delivery stream name.
 
         Raises:
-            FirehoseClientError: Firehose client error
+            FirehoseClientError: Firehose client error.
 
         Returns:
-            (bool): Whether or not the given Firehose delivery stream is active
+            (bool): Whether or not the given Firehose delivery stream is active.
         """
         try:
             boto_response = self.client.describe_delivery_stream(
@@ -106,27 +106,47 @@ class FirehoseClient(object):
             raise FirehoseClientError(str(e), get_http_error_code(e))
 
     def put_record_batch(
-        self, records: list, delivery_stream_name: str, jsonify: bool = False
+        self,
+        records: list,
+        delivery_stream_name: str,
+        jsonify: bool,
+        multiline: bool,
     ):
-        """Put records to an Amazon Firehose delivery stream in batch
+        """Put records to an Amazon Firehose delivery stream in batch.
 
         Args:
-            records (list): Records to put into a Firehose delivery stream
-            delivery_stream_name (str): Amazon Firehose delivery stream name
-            jsonify (bool, optional): Whether to convert records into JSON. Defaults to False.
+            records (list): Records to put into a Firehose delivery stream.
+            delivery_stream_name (str): Amazon Firehose delivery stream name.
+            jsonify (bool): Whether to convert records into JSON.
+            multiline (bool): Whether to add a new line at the end of each record.
 
         Raises:
-            FirehoseClientError: Firehose client error
+            FirehoseClientError: Firehose client error.
 
         Returns:
-            (Object): Boto3 response message
+            (Object): Boto3 response message.
         """
+
+        def process_data(record: str, jsonify: bool, multiline: bool):
+            if jsonify:
+                record = json.dumps(record)
+            if multiline:
+                record = f"{record}\n"
+            return record
+
         if not isinstance(records, list):
             raise TypeError("Records should be a list.")
         try:
             boto_response = self.client.put_record_batch(
                 DeliveryStreamName=delivery_stream_name,
-                Records=[{"Data": json.dumps(r) if jsonify else r} for r in records],
+                Records=[
+                    {
+                        "Data": process_data(
+                            record=r, jsonify=jsonify, multiline=multiline
+                        )
+                    }
+                    for r in records
+                ],
             )
             return boto_response
         except Exception as e:
@@ -138,7 +158,7 @@ class FakeFirehoseClient:
         self.num_keep = fake_config.get("num_keep", 0)
 
     def put_record_batch(
-        self, records: list, delivery_stream_name: str, jsonify: bool = False
+        self, records: list, delivery_stream_name: str, jsonify: bool, multiline: bool
     ):
         if not isinstance(records, list):
             raise TypeError("Records should be a list.")
