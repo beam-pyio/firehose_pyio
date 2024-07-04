@@ -1066,6 +1066,25 @@ importlib-resources = {version = ">=1.4.0", markers = "python_version < \"3.9\""
 referencing = ">=0.31.0"
 
 [[package]]
+name = "localstack-utils"
+version = "1.0.1"
+description = "Utils for testing with LocalStack"
+optional = false
+python-versions = "*"
+files = [
+    {file = "localstack-utils-1.0.1.tar.gz", hash = "sha256:142dff0b6cb334f917e94587554e96681395115ac77192b5310e260447929b0d"},
+    {file = "localstack_utils-1.0.1-py3-none-any.whl", hash = "sha256:277efb5f0830159f7a433f4daf028a9453805535523d98dff4b5f0d9cd97629e"},
+]
+
+[package.dependencies]
+docker = ">=6.1.1"
+nose = ">=1.3.7"
+nose-timer = ">=0.7.5"
+
+[package.extras]
+dev = ["black (==23.10.0)", "boto3 (>=1.26.121)", "pytest (>=7.4.0)", "ruff (==0.1.0)"]
+
+[[package]]
 name = "markupsafe"
 version = "2.1.5"
 description = "Safely add untrusted strings to HTML/XML markup."
@@ -1195,6 +1214,31 @@ server = ["PyYAML (>=5.1)", "antlr4-python3-runtime", "aws-xray-sdk (>=0.93,!=0.
 ssm = ["PyYAML (>=5.1)"]
 stepfunctions = ["antlr4-python3-runtime", "jsonpath-ng"]
 xray = ["aws-xray-sdk (>=0.93,!=0.96)", "setuptools"]
+
+[[package]]
+name = "nose"
+version = "1.3.7"
+description = "nose extends unittest to make testing easier"
+optional = false
+python-versions = "*"
+files = [
+    {file = "nose-1.3.7-py2-none-any.whl", hash = "sha256:dadcddc0aefbf99eea214e0f1232b94f2fa9bd98fa8353711dacb112bfcbbb2a"},
+    {file = "nose-1.3.7-py3-none-any.whl", hash = "sha256:9ff7c6cc443f8c51994b34a667bbcf45afd6d945be7477b52e97516fd17c53ac"},
+    {file = "nose-1.3.7.tar.gz", hash = "sha256:f1bffef9cbc82628f6e7d7b40d7e255aefaa1adb6a1b1d26c69a8b79e6208a98"},
+]
+
+[[package]]
+name = "nose-timer"
+version = "1.0.1"
+description = "A timer plugin for nosetests"
+optional = false
+python-versions = "*"
+files = [
+    {file = "nose-timer-1.0.1.tar.gz", hash = "sha256:8f70d103b7ffd9122a589de0df9d037a7d967519bf6de122621d2186609b9e3a"},
+]
+
+[package.dependencies]
+nose = "*"
 
 [[package]]
 name = "numpy"
@@ -2918,4 +2962,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8, <3.13"
-content-hash = "14c068afa1e11d77107412ff0b7f8a08af82a00b37bc8a4b61f73e11b44c6f66"
+content-hash = "cdb554a287d8559db5740567a1d38f16818750cceec394c749b47094fdd23a39"
