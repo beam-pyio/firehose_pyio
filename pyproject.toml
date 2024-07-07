@@ -9,6 +9,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = ">=3.8, <3.13"
 urllib3 = "<2"
+certifi = ">=2024.07.04"
 numpy = [
     {version = "1.24.4", python = "3.8"},
     {version = ">1.24.4", python = ">=3.9, <3.13"}
