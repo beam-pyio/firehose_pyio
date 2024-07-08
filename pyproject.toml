@@ -24,13 +24,18 @@ pandas = [
 ]
 apache-beam = {extras = ["aws"], version = ">=2.19.0"}
 
-[tool.poetry.dev-dependencies]
-
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7.1.2,<8.0"
 pytest-cov = "^5.0.0"
 apache-beam = {extras = ["test"], version = ">=2.19.0"}
 moto = {extras = ["firehose", "s3", "sts"], version = "^5.0.9"}
+localstack-utils = ">=1.0.0"
+
+[tool.pytest.ini_options]
+addopts = "-W ignore::pytest.PytestCollectionWarning"
+markers = [
+    "integration: marks integration tests (deselect with -m 'not integration')"
+]
 
 [tool.semantic_release]
 version_toml = [
