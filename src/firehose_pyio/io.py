@@ -17,7 +17,9 @@
 
 import typing
 import apache_beam as beam
+from apache_beam import metrics
 from apache_beam.pvalue import PCollection
+
 
 from firehose_pyio.boto3_client import FirehoseClient, FakeFirehoseClient
 from firehose_pyio.options import FirehoseOptions
@@ -36,6 +38,16 @@ class _FirehoseWriteFn(beam.DoFn):
         options (Union[FirehoseOptions, dict]): Options to create a boto3 Firehose client.
         fake_config (dict, optional): Config parameters when using FakeFirehoseClient for testing. Defaults to None.
     """
+
+    total_elements_count = metrics.Metrics.counter(
+        "_FirehoseWriteFn", "total_elements_count"
+    )
+    succeeded_elements_count = metrics.Metrics.counter(
+        "_FirehoseWriteFn", "succeeded_elements_count"
+    )
+    failed_elements_count = metrics.Metrics.counter(
+        "_FirehoseWriteFn", "failed_elements_count"
+    )
 
     def __init__(
         self,
@@ -76,7 +88,7 @@ class _FirehoseWriteFn(beam.DoFn):
     def process(self, element):
         if isinstance(element, tuple):
             element = element[1]
-        loop, failed = 0, []
+        loop, total, failed = 0, len(element), []
         while loop < self.max_retry:
             responses = self.client.put_record_batch(
                 element, self.delivery_stream_name, self.jsonify, self.multiline
@@ -89,10 +101,13 @@ class _FirehoseWriteFn(beam.DoFn):
             element = failed
             failed = []
             loop += 1
+        self.total_elements_count.inc(total)
+        self.succeeded_elements_count.inc(total - len(failed))
+        self.failed_elements_count.inc(len(failed))
         return failed
 
     def finish_bundle(self):
-        pass
+        self.client.close()
 
 
 class WriteToFirehose(beam.PTransform):

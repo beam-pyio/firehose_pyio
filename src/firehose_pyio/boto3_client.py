@@ -152,6 +152,10 @@ class FirehoseClient(object):
         except Exception as e:
             raise FirehoseClientError(str(e), get_http_error_code(e))
 
+    def close(self):
+        """Closes underlying endpoint connections."""
+        self.client.close()
+
 
 class FakeFirehoseClient:
     def __init__(self, fake_config: dict):
@@ -175,3 +179,6 @@ class FakeFirehoseClient:
             "Encrypted": False,
             "RequestResponses": request_responses,
         }
+
+    def close(self):
+        return
