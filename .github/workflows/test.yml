@@ -31,7 +31,7 @@ jobs:
         run: poetry install
 
       - name: Test with pytest
-        run: poetry run pytest tests/ -svv --cov=firehose_pyio --cov-report=xml -W ignore::pytest.PytestCollectionWarning
+        run: poetry run pytest tests/ -svv --cov=firehose_pyio --cov-report=xml -m "not integration"
 
       - name: Use Codecov to track coverage
         uses: codecov/codecov-action@v3

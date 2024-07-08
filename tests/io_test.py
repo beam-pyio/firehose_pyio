@@ -35,7 +35,7 @@ def sample_s3_dest_config(bucket_name):
     """Return a simple extended s3 destination configuration."""
     return {
         "RoleARN": f"arn:aws:iam::{ACCOUNT_ID}:role/firehose-test-role",
-        "BucketARN": f"arn:aws:s3::{bucket_name}",
+        "BucketARN": f"arn:aws:s3:::{bucket_name}",
     }
 
 
@@ -79,21 +79,19 @@ class TestWriteToFirehose(unittest.TestCase):
                 "testing",
                 "--aws_secret_access_key",
                 "testing",
-                "--aws_access_key_id",
-                "testing",
                 "--region_name",
                 "us-east-1",
             ]
         )
 
     def test_write_to_firehose_with_unsupported_types(self):
-        # accepts iterable except for string
+        # only the list type is supported!
         with self.assertRaises(TypeError):
             with TestPipeline(options=self.pipeline_opts) as p:
                 (
                     p
                     | beam.Create(["one", "two", "three", "four"])
-                    | WriteToFirehose(self.delivery_stream_name, True)
+                    | WriteToFirehose(self.delivery_stream_name, True, False)
                 )
 
     def test_write_to_firehose_with_invalid_typed_list_elements(self):
@@ -103,7 +101,7 @@ class TestWriteToFirehose(unittest.TestCase):
                 (
                     p
                     | beam.Create([[1, 2, 3, 4]])
-                    | WriteToFirehose(self.delivery_stream_name, False)
+                    | WriteToFirehose(self.delivery_stream_name, False, False)
                 )
 
     def test_write_to_firehose_with_list_elements(self):
@@ -111,7 +109,7 @@ class TestWriteToFirehose(unittest.TestCase):
             output = (
                 p
                 | beam.Create([["one", "two", "three", "four"], [1, 2, 3, 4]])
-                | WriteToFirehose(self.delivery_stream_name, True)
+                | WriteToFirehose(self.delivery_stream_name, True, False)
             )
             assert_that(output, equal_to([]))
 
@@ -125,7 +123,7 @@ class TestWriteToFirehose(unittest.TestCase):
             output = (
                 p
                 | beam.Create([(1, ["one", "two", "three", "four"]), (2, [1, 2, 3, 4])])
-                | WriteToFirehose(self.delivery_stream_name, True)
+                | WriteToFirehose(self.delivery_stream_name, True, False)
             )
             assert_that(output, equal_to([]))
 
@@ -134,17 +132,17 @@ class TestWriteToFirehose(unittest.TestCase):
             set(bucket_contents), set(['"one""two""three""four"', "1234"])
         )
 
-    def test_write_to_firehose_with_unsupported_elements(self):
+    def test_write_to_firehose_without_list_to_batch_elements(self):
         # accepts iterable objects except for string
         with self.assertRaises(TypeError):
             with TestPipeline(options=self.pipeline_opts) as p:
                 (
                     p
                     | beam.Create(["one", "two", "three", "four"])
-                    | WriteToFirehose(self.delivery_stream_name, False)
+                    | WriteToFirehose(self.delivery_stream_name, False, False)
                 )
 
-    def test_write_to_firehose_with_group_unsupported_elements_into_batches(self):
+    def test_write_to_firehose_with_list_to_batch_elements(self):
         # string is not a supported type but list of strings
         # convert to list of strings with BatchElements if unkeyed elements
         with TestPipeline(options=self.pipeline_opts) as p:
@@ -152,24 +150,24 @@ class TestWriteToFirehose(unittest.TestCase):
                 p
                 | beam.Create(["one", "two", "three", "four"])
                 | BatchElements(min_batch_size=2, max_batch_size=2)
-                | WriteToFirehose(self.delivery_stream_name, False)
+                | WriteToFirehose(self.delivery_stream_name, False, False)
             )
             assert_that(output, equal_to([]))
 
         bucket_contents = collect_bucket_contents(self.s3_client, self.bucket_name)
         self.assertSetEqual(set(bucket_contents), set(["onetwo", "threefour"]))
 
-    def test_write_to_firehose_with_unsupported_tuple_elements(self):
+    def test_write_to_firehose_without_tuple_to_group_into_batches(self):
         # accepts iterable objects except for string
         with self.assertRaises(TypeError):
             with TestPipeline(options=self.pipeline_opts) as p:
                 (
                     p
                     | beam.Create([(1, "one"), (2, "two"), (1, "three"), (2, "four")])
-                    | WriteToFirehose(self.delivery_stream_name, False)
+                    | WriteToFirehose(self.delivery_stream_name, False, False)
                 )
 
-    def test_write_to_firehose_with_group_unsupported_tuple_elements_into_batches(self):
+    def test_write_to_firehose_with_tuple_to_group_into_batches(self):
         # string is not a supported type but list of strings
         # convert to list of strings with GroupIntoBatches if keyed elements
         with TestPipeline(options=self.pipeline_opts) as p:
@@ -177,12 +175,38 @@ class TestWriteToFirehose(unittest.TestCase):
                 p
                 | beam.Create([(1, "one"), (2, "three"), (1, "two"), (2, "four")])
                 | GroupIntoBatches(batch_size=2)
-                | WriteToFirehose(self.delivery_stream_name, False)
+                | WriteToFirehose(self.delivery_stream_name, False, False)
             )
             assert_that(output, equal_to([]))
 
         bucket_contents = collect_bucket_contents(self.s3_client, self.bucket_name)
         self.assertSetEqual(set(bucket_contents), set(["onetwo", "threefour"]))
+
+    def test_write_to_firehose_with_list_multilining(self):
+        with TestPipeline(options=self.pipeline_opts) as p:
+            output = (
+                p
+                | beam.Create(["one", "two", "three", "four"])
+                | BatchElements(min_batch_size=2, max_batch_size=2)
+                | WriteToFirehose(self.delivery_stream_name, False, True)
+            )
+            assert_that(output, equal_to([]))
+
+        bucket_contents = collect_bucket_contents(self.s3_client, self.bucket_name)
+        self.assertSetEqual(set(bucket_contents), set(["one\ntwo\n", "three\nfour\n"]))
+
+    def test_write_to_firehose_with_tuple_multilining(self):
+        with TestPipeline(options=self.pipeline_opts) as p:
+            output = (
+                p
+                | beam.Create([(1, "one"), (2, "three"), (1, "two"), (2, "four")])
+                | GroupIntoBatches(batch_size=2)
+                | WriteToFirehose(self.delivery_stream_name, False, True)
+            )
+            assert_that(output, equal_to([]))
+
+        bucket_contents = collect_bucket_contents(self.s3_client, self.bucket_name)
+        self.assertSetEqual(set(bucket_contents), set(["one\ntwo\n", "three\nfour\n"]))
 
 
 class TestRetryLogic(unittest.TestCase):
@@ -193,7 +217,7 @@ class TestRetryLogic(unittest.TestCase):
                 | beam.Create(["one", "two", "three", "four"])
                 | BatchElements(min_batch_size=4)
                 | WriteToFirehose(
-                    "non-existing-delivery-stream", False, 3, {"num_keep": 2}
+                    "non-existing-delivery-stream", False, False, 3, {"num_keep": 2}
                 )
             )
             assert_that(output, equal_to([]))
@@ -205,7 +229,7 @@ class TestRetryLogic(unittest.TestCase):
                 | beam.Create(["one", "two", "three", "four"])
                 | BatchElements(min_batch_size=4)
                 | WriteToFirehose(
-                    "non-existing-delivery-stream", False, 3, {"num_keep": 1}
+                    "non-existing-delivery-stream", False, False, 3, {"num_keep": 1}
                 )
             )
             assert_that(output, equal_to(["four"]))
@@ -218,7 +242,9 @@ class TestMetrics(unittest.TestCase):
             pipeline
             | beam.Create(["one", "two", "three", "four"])
             | BatchElements(min_batch_size=4)
-            | WriteToFirehose("non-existing-delivery-stream", False, 3, {"num_keep": 2})
+            | WriteToFirehose(
+                "non-existing-delivery-stream", False, False, 3, {"num_keep": 2}
+            )
         )
         assert_that(output, equal_to([]))
 
@@ -257,7 +283,9 @@ class TestMetrics(unittest.TestCase):
             pipeline
             | beam.Create(["one", "two", "three", "four"])
             | BatchElements(min_batch_size=4)
-            | WriteToFirehose("non-existing-delivery-stream", False, 3, {"num_keep": 1})
+            | WriteToFirehose(
+                "non-existing-delivery-stream", False, False, 3, {"num_keep": 1}
+            )
         )
         assert_that(output, equal_to(["four"]))
 
