@@ -110,7 +110,7 @@ def run(argv=None, save_main_session=True):
                 delivery_stream_name=known_args.stream_name,
                 jsonify=True,
                 multiline=True,
-                max_retry=3,
+                max_trials=3,
             )
         )
 

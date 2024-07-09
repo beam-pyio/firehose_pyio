@@ -34,7 +34,7 @@ class _FirehoseWriteFn(beam.DoFn):
         delivery_stream_name (str): Amazon Firehose delivery stream name.
         jsonify (bool): Whether to convert records into JSON.
         multiline (bool): Whether to add a new line at the end of each record.
-        max_retry (int): Maximum number of retry to put failed records.
+        max_trials (int): Maximum number of trials to put failed records.
         options (Union[FirehoseOptions, dict]): Options to create a boto3 Firehose client.
         fake_config (dict, optional): Config parameters when using FakeFirehoseClient for testing.
     """
@@ -54,7 +54,7 @@ class _FirehoseWriteFn(beam.DoFn):
         delivery_stream_name: str,
         jsonify: bool,
         multiline: bool,
-        max_retry: int,
+        max_trials: int,
         options: typing.Union[FirehoseOptions, dict],
         fake_config: dict,
     ):
@@ -64,7 +64,7 @@ class _FirehoseWriteFn(beam.DoFn):
             delivery_stream_name (str): Amazon Firehose delivery stream name.
             jsonify (bool): Whether to convert records into JSON.
             multiline (bool): Whether to add a new line at the end of each record.
-            max_retry (int): Maximum number of retry to put failed records.
+            max_trials (int): Maximum number of trials to put failed records.
             options (Union[FirehoseOptions, dict]): Options to create a boto3 Firehose client.
             fake_config (dict, optional): Config parameters when using FakeFirehoseClient for testing.
         """
@@ -72,7 +72,7 @@ class _FirehoseWriteFn(beam.DoFn):
         self.delivery_stream_name = delivery_stream_name
         self.jsonify = jsonify
         self.multiline = multiline
-        self.max_retry = max_retry
+        self.max_trials = max_trials
         self.options = options
         self.fake_config = fake_config
 
@@ -89,14 +89,14 @@ class _FirehoseWriteFn(beam.DoFn):
         if isinstance(element, tuple):
             element = element[1]
         loop, total, failed = 0, len(element), []
-        while loop < self.max_retry:
+        while loop < self.max_trials:
             responses = self.client.put_record_batch(
                 element, self.delivery_stream_name, self.jsonify, self.multiline
             )["RequestResponses"]
             for index, result in enumerate(responses):
                 if "RecordId" not in result:
                     failed.append(element[index])
-            if len(failed) == 0 or (self.max_retry - loop == 1):
+            if len(failed) == 0 or (self.max_trials - loop == 1):
                 break
             element = failed
             failed = []
@@ -122,7 +122,7 @@ class WriteToFirehose(beam.PTransform):
         delivery_stream_name (str): Amazon Firehose delivery stream name.
         jsonify (bool): Whether to convert records into JSON.
         multiline (bool): Whether to add a new line at the end of each record.
-        max_retry (int): Maximum number of retry to put failed records. Defaults to 3.
+        max_trials (int): Maximum number of trials to put failed records. Defaults to 3.
         fake_config (dict, optional): Config parameters when using FakeFirehoseClient for testing. Defaults to {}.
     """
 
@@ -131,7 +131,7 @@ class WriteToFirehose(beam.PTransform):
         delivery_stream_name: str,
         jsonify: bool,
         multiline: bool,
-        max_retry: int = 3,
+        max_trials: int = 3,
         fake_config: dict = {},
     ):
         """Constructor of the transform that puts records into an Amazon Firehose delivery stream
@@ -140,14 +140,14 @@ class WriteToFirehose(beam.PTransform):
             delivery_stream_name (str): Amazon Firehose delivery stream name.
             jsonify (bool): Whether to convert records into JSON.
             multiline (bool): Whether to add a new line at the end of each record.
-            max_retry (int): Maximum number of retry to put failed records. Defaults to 3.
+            max_trials (int): Maximum number of trials to put failed records. Defaults to 3.
             fake_config (dict, optional): Config parameters when using FakeFirehoseClient for testing. Defaults to {}.
         """
         super().__init__()
         self.delivery_stream_name = delivery_stream_name
         self.jsonify = jsonify
         self.multiline = multiline
-        self.max_retry = max_retry
+        self.max_trials = max_trials
         self.fake_config = fake_config
 
     def expand(self, pcoll: PCollection):
@@ -157,7 +157,7 @@ class WriteToFirehose(beam.PTransform):
                 self.delivery_stream_name,
                 self.jsonify,
                 self.multiline,
-                self.max_retry,
+                self.max_trials,
                 options,
                 self.fake_config,
             )
