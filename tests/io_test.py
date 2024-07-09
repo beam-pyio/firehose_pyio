@@ -217,7 +217,7 @@ class TestRetryLogic(unittest.TestCase):
                 | beam.Create(["one", "two", "three", "four"])
                 | BatchElements(min_batch_size=4)
                 | WriteToFirehose(
-                    "non-existing-delivery-stream", False, False, 3, {"num_keep": 2}
+                    "non-existing-delivery-stream", False, False, 3, {"num_success": 2}
                 )
             )
             assert_that(output, equal_to([]))
@@ -229,7 +229,7 @@ class TestRetryLogic(unittest.TestCase):
                 | beam.Create(["one", "two", "three", "four"])
                 | BatchElements(min_batch_size=4)
                 | WriteToFirehose(
-                    "non-existing-delivery-stream", False, False, 3, {"num_keep": 1}
+                    "non-existing-delivery-stream", False, False, 3, {"num_success": 1}
                 )
             )
             assert_that(output, equal_to(["four"]))
@@ -243,7 +243,7 @@ class TestMetrics(unittest.TestCase):
             | beam.Create(["one", "two", "three", "four"])
             | BatchElements(min_batch_size=4)
             | WriteToFirehose(
-                "non-existing-delivery-stream", False, False, 3, {"num_keep": 2}
+                "non-existing-delivery-stream", False, False, 3, {"num_success": 2}
             )
         )
         assert_that(output, equal_to([]))
@@ -284,7 +284,7 @@ class TestMetrics(unittest.TestCase):
             | beam.Create(["one", "two", "three", "four"])
             | BatchElements(min_batch_size=4)
             | WriteToFirehose(
-                "non-existing-delivery-stream", False, False, 3, {"num_keep": 1}
+                "non-existing-delivery-stream", False, False, 3, {"num_success": 1}
             )
         )
         assert_that(output, equal_to(["four"]))
