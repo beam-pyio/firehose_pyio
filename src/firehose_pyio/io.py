@@ -32,11 +32,11 @@ class _FirehoseWriteFn(beam.DoFn):
 
     Args:
         delivery_stream_name (str): Amazon Firehose delivery stream name.
-        jsonify (bool): Whether to convert records into JSON. Defaults to False.
+        jsonify (bool): Whether to convert records into JSON.
         multiline (bool): Whether to add a new line at the end of each record.
         max_retry (int): Maximum number of retry to put failed records.
         options (Union[FirehoseOptions, dict]): Options to create a boto3 Firehose client.
-        fake_config (dict, optional): Config parameters when using FakeFirehoseClient for testing. Defaults to None.
+        fake_config (dict, optional): Config parameters when using FakeFirehoseClient for testing.
     """
 
     total_elements_count = metrics.Metrics.counter(
@@ -62,7 +62,7 @@ class _FirehoseWriteFn(beam.DoFn):
 
         Args:
             delivery_stream_name (str): Amazon Firehose delivery stream name.
-            jsonify (bool): Whether to convert records into JSON. Defaults to False.
+            jsonify (bool): Whether to convert records into JSON.
             multiline (bool): Whether to add a new line at the end of each record.
             max_retry (int): Maximum number of retry to put failed records.
             options (Union[FirehoseOptions, dict]): Options to create a boto3 Firehose client.
