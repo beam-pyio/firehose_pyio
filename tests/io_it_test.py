@@ -56,7 +56,7 @@ def create_delivery_stream(delivery_stream_name, role_name, bucket_name):
     fh_client = create_client("firehose")
     return fh_client.create_delivery_stream(
         DeliveryStreamName=delivery_stream_name,
-        ExtendedS3DestinationConfiguration={
+        S3DestinationConfiguration={
             "RoleARN": f"arn:aws:iam::000000000000:role/{role_name}",
             "BucketARN": f"arn:aws:s3:::{bucket_name}",
         },

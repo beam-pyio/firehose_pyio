@@ -68,7 +68,7 @@ class TestWriteToFirehose(unittest.TestCase):
         create_delivery_stream(
             fh_client,
             DeliveryStreamName=self.delivery_stream_name,
-            ExtendedS3DestinationConfiguration=sample_s3_dest_config(self.bucket_name),
+            S3DestinationConfiguration=sample_s3_dest_config(self.bucket_name),
         )
         self.s3_client = boto3.client("s3", region_name="us-east-1")
         self.s3_client.create_bucket(Bucket=self.bucket_name)
