@@ -68,7 +68,7 @@ class TestWriteToFirehose(unittest.TestCase):
         create_delivery_stream(
             fh_client,
             DeliveryStreamName=self.delivery_stream_name,
-            ExtendedS3DestinationConfiguration=sample_s3_dest_config(self.bucket_name),
+            S3DestinationConfiguration=sample_s3_dest_config(self.bucket_name),
         )
         self.s3_client = boto3.client("s3", region_name="us-east-1")
         self.s3_client.create_bucket(Bucket=self.bucket_name)
@@ -217,7 +217,7 @@ class TestRetryLogic(unittest.TestCase):
                 | beam.Create(["one", "two", "three", "four"])
                 | BatchElements(min_batch_size=4)
                 | WriteToFirehose(
-                    "non-existing-delivery-stream", False, False, 3, {"num_keep": 2}
+                    "non-existing-delivery-stream", False, False, 3, {"num_success": 2}
                 )
             )
             assert_that(output, equal_to([]))
@@ -229,7 +229,7 @@ class TestRetryLogic(unittest.TestCase):
                 | beam.Create(["one", "two", "three", "four"])
                 | BatchElements(min_batch_size=4)
                 | WriteToFirehose(
-                    "non-existing-delivery-stream", False, False, 3, {"num_keep": 1}
+                    "non-existing-delivery-stream", False, False, 3, {"num_success": 1}
                 )
             )
             assert_that(output, equal_to(["four"]))
@@ -243,7 +243,7 @@ class TestMetrics(unittest.TestCase):
             | beam.Create(["one", "two", "three", "four"])
             | BatchElements(min_batch_size=4)
             | WriteToFirehose(
-                "non-existing-delivery-stream", False, False, 3, {"num_keep": 2}
+                "non-existing-delivery-stream", False, False, 3, {"num_success": 2}
             )
         )
         assert_that(output, equal_to([]))
@@ -284,7 +284,7 @@ class TestMetrics(unittest.TestCase):
             | beam.Create(["one", "two", "three", "four"])
             | BatchElements(min_batch_size=4)
             | WriteToFirehose(
-                "non-existing-delivery-stream", False, False, 3, {"num_keep": 1}
+                "non-existing-delivery-stream", False, False, 3, {"num_success": 1}
             )
         )
         assert_that(output, equal_to(["four"]))

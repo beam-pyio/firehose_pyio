@@ -122,6 +122,7 @@ class FirehoseClient(object):
 
         Raises:
             FirehoseClientError: Firehose client error.
+            TypeError: TypeError.
 
         Returns:
             (Object): Boto3 response message.
@@ -159,7 +160,7 @@ class FirehoseClient(object):
 
 class FakeFirehoseClient:
     def __init__(self, fake_config: dict):
-        self.num_keep = fake_config.get("num_keep", 0)
+        self.num_success = fake_config.get("num_success", 0)
 
     def put_record_batch(
         self, records: list, delivery_stream_name: str, jsonify: bool, multiline: bool
@@ -168,7 +169,7 @@ class FakeFirehoseClient:
             raise TypeError("Records should be a list.")
         request_responses = []
         for index, _ in enumerate(records):
-            if index < self.num_keep:
+            if index < self.num_success:
                 request_responses.append({"RecordId": index})
             else:
                 request_responses.append(
