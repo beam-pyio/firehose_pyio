@@ -3,8 +3,8 @@
 ![doc](https://github.com/beam-pyio/firehose_pyio/workflows/doc/badge.svg)
 ![test](https://github.com/beam-pyio/firehose_pyio/workflows/test/badge.svg)
 [![release](https://img.shields.io/github/release/beam-pyio/firehose_pyio.svg)](https://github.com/beam-pyio/firehose_pyio/releases)
-![python](https://img.shields.io/badge/python-3.8%2C%203.9%2C%203.10%2C%203.11%2C%203.12-blue)
-![os](https://img.shields.io/badge/OS-Ubuntu%2C%20Mac%2C%20Windows-purple)
+![pypi](https://img.shields.io/pypi/v/firehose_pyio)
+![python](https://img.shields.io/pypi/pyversions/firehose_pyio)
 
 [Amazon Data Firehose](https://aws.amazon.com/firehose/) is a fully managed service for delivering real-time streaming data to destinations such as Amazon Simple Storage Service (Amazon S3), Amazon Redshift, Amazon OpenSearch Service and Amazon OpenSearch Serverless. The Apache Beam Python I/O connector for Amazon Data Firehose (`firehose_pyio`) provides a data sink feature that facilitates integration with those services.
 
