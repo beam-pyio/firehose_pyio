@@ -122,7 +122,6 @@ class FirehoseClient(object):
 
         Raises:
             FirehoseClientError: Firehose client error.
-            TypeError: TypeError.
 
         Returns:
             (Object): Boto3 response message.
@@ -136,7 +135,7 @@ class FirehoseClient(object):
             return record
 
         if not isinstance(records, list):
-            raise TypeError("Records should be a list.")
+            raise FirehoseClientError("Records should be a list.")
         try:
             boto_response = self.client.put_record_batch(
                 DeliveryStreamName=delivery_stream_name,
@@ -166,7 +165,7 @@ class FakeFirehoseClient:
         self, records: list, delivery_stream_name: str, jsonify: bool, multiline: bool
     ):
         if not isinstance(records, list):
-            raise TypeError("Records should be a list.")
+            raise FirehoseClientError("Records should be a list.")
         request_responses = []
         for index, _ in enumerate(records):
             if index < self.num_success:

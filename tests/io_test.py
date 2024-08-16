@@ -86,7 +86,7 @@ class TestWriteToFirehose(unittest.TestCase):
 
     def test_write_to_firehose_with_unsupported_types(self):
         # only the list type is supported!
-        with self.assertRaises(TypeError):
+        with self.assertRaises(FirehoseClientError):
             with TestPipeline(options=self.pipeline_opts) as p:
                 (
                     p
@@ -134,7 +134,7 @@ class TestWriteToFirehose(unittest.TestCase):
 
     def test_write_to_firehose_without_list_to_batch_elements(self):
         # accepts iterable objects except for string
-        with self.assertRaises(TypeError):
+        with self.assertRaises(FirehoseClientError):
             with TestPipeline(options=self.pipeline_opts) as p:
                 (
                     p
@@ -159,7 +159,7 @@ class TestWriteToFirehose(unittest.TestCase):
 
     def test_write_to_firehose_without_tuple_to_group_into_batches(self):
         # accepts iterable objects except for string
-        with self.assertRaises(TypeError):
+        with self.assertRaises(FirehoseClientError):
             with TestPipeline(options=self.pipeline_opts) as p:
                 (
                     p
