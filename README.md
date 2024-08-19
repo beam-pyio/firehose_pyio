@@ -78,7 +78,7 @@ Interested in contributing? Check out the contributing guidelines. Please note t
 
 ## License
 
-`firehose_pyio` was created by Beam PyIO <beam.pyio@gmail.com>. It is licensed under the terms of the Apache License 2.0 license.
+`firehose_pyio` was created as part of the [Apache Beam Python I/O Connectors](https://github.com/beam-pyio) project. It is licensed under the terms of the Apache License 2.0 license.
 
 ## Credits
 

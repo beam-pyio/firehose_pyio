@@ -121,7 +121,7 @@ class TestWriteToFirehose(unittest.TestCase):
                 | BatchElements(min_batch_size=2, max_batch_size=2)
                 | WriteToFirehose(self.delivery_stream_name, False, False)
             )
-            assert_that(output, equal_to([]))
+            assert_that(output[None], equal_to([]))
 
         bucket_contents = collect_bucket_contents(self.bucket_name)
         self.assertSetEqual(set(bucket_contents), set(["onetwo", "threefour"]))
@@ -134,7 +134,7 @@ class TestWriteToFirehose(unittest.TestCase):
                 | GroupIntoBatches(batch_size=2)
                 | WriteToFirehose(self.delivery_stream_name, False, False)
             )
-            assert_that(output, equal_to([]))
+            assert_that(output[None], equal_to([]))
 
         bucket_contents = collect_bucket_contents(self.bucket_name)
         self.assertSetEqual(set(bucket_contents), set(["onetwo", "threefour"]))
@@ -147,7 +147,7 @@ class TestWriteToFirehose(unittest.TestCase):
                 | BatchElements(min_batch_size=2, max_batch_size=2)
                 | WriteToFirehose(self.delivery_stream_name, False, True)
             )
-            assert_that(output, equal_to([]))
+            assert_that(output[None], equal_to([]))
 
         bucket_contents = collect_bucket_contents(self.bucket_name)
         self.assertSetEqual(set(bucket_contents), set(["one\ntwo\n", "three\nfour\n"]))
@@ -160,7 +160,7 @@ class TestWriteToFirehose(unittest.TestCase):
                 | GroupIntoBatches(batch_size=2)
                 | WriteToFirehose(self.delivery_stream_name, False, True)
             )
-            assert_that(output, equal_to([]))
+            assert_that(output[None], equal_to([]))
 
         bucket_contents = collect_bucket_contents(self.bucket_name)
         self.assertSetEqual(set(bucket_contents), set(["one\ntwo\n", "three\nfour\n"]))
