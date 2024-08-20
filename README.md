@@ -20,11 +20,14 @@ The connector has the main composite transform ([`WriteToFirehose`](https://beam
 
 - Each `PutRecordBatch` request supports up to 500 records. Each record in the request can be as large as 1,000 KB (before base64 encoding), up to a limit of 4 MB for the entire request. These limits cannot be changed.
 
-The transform also has options that control individual records or handling failed records.
+The transform also has options that control individual records as well as handle failed records.
 
-- _jsonify_ - A flag that indicates whether to convert a record into Json. Note that a record should be of _bytes_, _bytearray_ or file-like object, and, if it is not of a supported type (e.g. integer), we can convert it into a Json string by specifying this flag to _True_.
+- _jsonify_ - A flag that indicates whether to convert a record into JSON. Note that a record should be of _bytes_, _bytearray_ or file-like object, and, if it is not of a supported type (e.g. integer), we can convert it into a Json string by specifying this flag to _True_.
 - _multiline_ - A flag that indicates whether to add a new line character (`\n`) to each record. It is useful to save records into a _CSV_ or _Jsonline_ file.
 - _max_trials_ - The maximum number of trials when there is one or more failed records - it defaults to 3. Note that failed records after all trials are returned, which allows users to determine how to handle them subsequently.
+- _append_error_ - Whether to append error details to failed records. Defaults to True.
+
+As mentioned earlier, failed elements are returned by a tagged output where it is named as `write-to-firehose-failed-output` by default. You can change the name by specifying a different name using the `failed_output` argument.
 
 ### Example
 
