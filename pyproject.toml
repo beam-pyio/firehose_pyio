@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "firehose_pyio"
-version = "0.2.0"
+version = "0.2.1"
 description = "Apache Beam Python I/O connector for Amazon Firehose"
 authors = ["Beam PyIO <beam.pyio@gmail.com>"]
 license = "Apache License 2.0"
