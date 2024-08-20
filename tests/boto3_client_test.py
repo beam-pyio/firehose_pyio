@@ -73,7 +73,7 @@ class TestBoto3Client(unittest.TestCase):
     def test_put_record_batch_with_unsupported_types(self):
         # only the list type is supported!
         self.assertRaises(
-            TypeError,
+            FirehoseClientError,
             self.fh_client.put_record_batch,
             "abc",
             self.delivery_stream_name,
@@ -82,7 +82,7 @@ class TestBoto3Client(unittest.TestCase):
         )
 
         self.assertRaises(
-            TypeError,
+            FirehoseClientError,
             self.fh_client.put_record_batch,
             123,
             self.delivery_stream_name,

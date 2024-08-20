@@ -15,10 +15,11 @@
 # limitations under the License.
 #
 
+import logging
 import typing
 import apache_beam as beam
 from apache_beam import metrics
-from apache_beam.pvalue import PCollection
+from apache_beam.pvalue import PCollection, TaggedOutput
 
 
 from firehose_pyio.boto3_client import FirehoseClient, FakeFirehoseClient
@@ -35,8 +36,10 @@ class _FirehoseWriteFn(beam.DoFn):
         jsonify (bool): Whether to convert records into JSON.
         multiline (bool): Whether to add a new line at the end of each record.
         max_trials (int): Maximum number of trials to put failed records.
+        append_error (bool): Whether to append error details to failed records.
+        failed_output (str): A tagged output name where failed records are written to.
         options (Union[FirehoseOptions, dict]): Options to create a boto3 Firehose client.
-        fake_config (dict, optional): Config parameters when using FakeFirehoseClient for testing.
+        fake_config (dict): Config parameters when using FakeFirehoseClient for testing.
     """
 
     total_elements_count = metrics.Metrics.counter(
@@ -55,6 +58,8 @@ class _FirehoseWriteFn(beam.DoFn):
         jsonify: bool,
         multiline: bool,
         max_trials: int,
+        append_error: bool,
+        failed_output: str,
         options: typing.Union[FirehoseOptions, dict],
         fake_config: dict,
     ):
@@ -65,14 +70,18 @@ class _FirehoseWriteFn(beam.DoFn):
             jsonify (bool): Whether to convert records into JSON.
             multiline (bool): Whether to add a new line at the end of each record.
             max_trials (int): Maximum number of trials to put failed records.
+            append_error (bool): Whether to append error details to failed records.
+            failed_output (str): A tagged output name where failed records are written to.
             options (Union[FirehoseOptions, dict]): Options to create a boto3 Firehose client.
-            fake_config (dict, optional): Config parameters when using FakeFirehoseClient for testing.
+            fake_config (dict): Config parameters when using FakeFirehoseClient for testing.
         """
         super().__init__()
         self.delivery_stream_name = delivery_stream_name
         self.jsonify = jsonify
         self.multiline = multiline
         self.max_trials = max_trials
+        self.append_error = append_error
+        self.failed_output = failed_output
         self.options = options
         self.fake_config = fake_config
 
@@ -95,16 +104,24 @@ class _FirehoseWriteFn(beam.DoFn):
             )["RequestResponses"]
             for index, result in enumerate(responses):
                 if "RecordId" not in result:
-                    failed.append(element[index])
+                    failed.append((element[index], result))
             if len(failed) == 0 or (self.max_trials - loop == 1):
                 break
-            element = failed
+            element = [t[0] for t in failed]
             failed = []
             loop += 1
         self.total_elements_count.inc(total)
         self.succeeded_elements_count.inc(total - len(failed))
         self.failed_elements_count.inc(len(failed))
-        return failed
+        logging.info(
+            f"total {total}, succeeded {total - len(failed)}, failed {len(failed)}..."
+        )
+        if len(failed) > 0:
+            for r in failed:
+                if self.append_error:
+                    yield TaggedOutput(self.failed_output, (r[0], r[1]))
+                else:
+                    yield TaggedOutput(self.failed_output, r[0])
 
     def finish_bundle(self):
         self.client.close()
@@ -123,6 +140,8 @@ class WriteToFirehose(beam.PTransform):
         jsonify (bool): Whether to convert records into JSON.
         multiline (bool): Whether to add a new line at the end of each record.
         max_trials (int): Maximum number of trials to put failed records. Defaults to 3.
+        append_error (bool, optional): Whether to append error details to failed records. Defaults to True.
+        failed_output (str, optional): A tagged output name where failed records are written to. Defaults to 'write-to-firehose-failed-output'.
         fake_config (dict, optional): Config parameters when using FakeFirehoseClient for testing. Defaults to {}.
     """
 
@@ -132,6 +151,8 @@ class WriteToFirehose(beam.PTransform):
         jsonify: bool,
         multiline: bool,
         max_trials: int = 3,
+        append_error: bool = True,
+        failed_output: str = "write-to-firehose-failed-output",
         fake_config: dict = {},
     ):
         """Constructor of the transform that puts records into an Amazon Firehose delivery stream
@@ -141,6 +162,8 @@ class WriteToFirehose(beam.PTransform):
             jsonify (bool): Whether to convert records into JSON.
             multiline (bool): Whether to add a new line at the end of each record.
             max_trials (int): Maximum number of trials to put failed records. Defaults to 3.
+            append_error (bool, optional): Whether to append error details to failed records. Defaults to True.
+            failed_output (str, optional): A tagged output name where failed records are written to. Defaults to 'write-to-firehose-failed-output'.
             fake_config (dict, optional): Config parameters when using FakeFirehoseClient for testing. Defaults to {}.
         """
         super().__init__()
@@ -148,6 +171,8 @@ class WriteToFirehose(beam.PTransform):
         self.jsonify = jsonify
         self.multiline = multiline
         self.max_trials = max_trials
+        self.append_error = append_error
+        self.failed_output = failed_output
         self.fake_config = fake_config
 
     def expand(self, pcoll: PCollection):
@@ -158,7 +183,9 @@ class WriteToFirehose(beam.PTransform):
                 self.jsonify,
                 self.multiline,
                 self.max_trials,
+                self.append_error,
+                self.failed_output,
                 options,
                 self.fake_config,
             )
-        )
+        ).with_outputs(self.failed_output, main=None)
