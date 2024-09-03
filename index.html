@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>firehose_pyio &mdash; firehose_pyio  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Changelog" href="changelog.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            firehose_pyio
+              <img src="_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="conduct.html">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">firehose_pyio</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">firehose_pyio</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="firehose-pyio">
+<h1>firehose_pyio<a class="headerlink" href="#firehose-pyio" title="Link to this heading"></a></h1>
+<p><img alt="doc" src="https://github.com/beam-pyio/firehose_pyio/workflows/doc/badge.svg" />
+<img alt="test" src="https://github.com/beam-pyio/firehose_pyio/workflows/test/badge.svg" />
+<a class="reference external" href="https://github.com/beam-pyio/firehose_pyio/releases"><img alt="release" src="https://img.shields.io/github/release/beam-pyio/firehose_pyio.svg" /></a>
+<img alt="pypi" src="https://img.shields.io/pypi/v/firehose_pyio" />
+<img alt="python" src="https://img.shields.io/pypi/pyversions/firehose_pyio" /></p>
+<p><a class="reference external" href="https://aws.amazon.com/firehose/">Amazon Data Firehose</a> is a fully managed service for delivering real-time streaming data to destinations such as Amazon Simple Storage Service (Amazon S3), Amazon Redshift, Amazon OpenSearch Service and Amazon OpenSearch Serverless. The Apache Beam Python I/O connector for Amazon Data Firehose (<code class="docutils literal notranslate"><span class="pre">firehose_pyio</span></code>) provides a data sink feature that facilitates integration with those services.</p>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>firehose_pyio
+</pre></div>
+</div>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
+<p>The connector has the main composite transform (<a class="reference external" href="https://beam-pyio.github.io/firehose_pyio/autoapi/firehose_pyio/io/index.html#firehose_pyio.io.WriteToFirehose"><code class="docutils literal notranslate"><span class="pre">WriteToFirehose</span></code></a>), and it expects a list or tuple <em>PCollection</em> element. If the element is a tuple, the tuple’s first element is taken. If the element is not of the accepted types, you can apply the <a class="reference external" href="https://beam.apache.org/documentation/transforms/python/aggregation/groupintobatches/"><code class="docutils literal notranslate"><span class="pre">GroupIntoBatches</span></code></a> or <a class="reference external" href="https://beam.apache.org/releases/pydoc/current/apache_beam.transforms.util.html#apache_beam.transforms.util.BatchElements"><code class="docutils literal notranslate"><span class="pre">BatchElements</span></code></a> transform beforehand. Then, the element is sent into a Firehose delivery stream using the <a class="reference external" href="https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/firehose/client/put_record_batch.html"><code class="docutils literal notranslate"><span class="pre">put_record_batch</span></code></a> method of the boto3 package. Note that the above batch transforms can also be useful to overcome the API limitation listed below.</p>
+<ul class="simple">
+<li><p>Each <code class="docutils literal notranslate"><span class="pre">PutRecordBatch</span></code> request supports up to 500 records. Each record in the request can be as large as 1,000 KB (before base64 encoding), up to a limit of 4 MB for the entire request. These limits cannot be changed.</p></li>
+</ul>
+<p>The transform also has options that control individual records as well as handle failed records.</p>
+<ul class="simple">
+<li><p><em>jsonify</em> - A flag that indicates whether to convert a record into JSON. Note that a record should be of <em>bytes</em>, <em>bytearray</em> or file-like object, and, if it is not of a supported type (e.g. integer), we can convert it into a Json string by specifying this flag to <em>True</em>.</p></li>
+<li><p><em>multiline</em> - A flag that indicates whether to add a new line character (<code class="docutils literal notranslate"><span class="pre">\n</span></code>) to each record. It is useful to save records into a <em>CSV</em> or <em>Jsonline</em> file.</p></li>
+<li><p><em>max_trials</em> - The maximum number of trials when there is one or more failed records - it defaults to 3. Note that failed records after all trials are returned, which allows users to determine how to handle them subsequently.</p></li>
+<li><p><em>append_error</em> - Whether to append error details to failed records. Defaults to True.</p></li>
+</ul>
+<p>As mentioned earlier, failed elements are returned by a tagged output where it is named as <code class="docutils literal notranslate"><span class="pre">write-to-firehose-failed-output</span></code> by default. You can change the name by specifying a different name using the <code class="docutils literal notranslate"><span class="pre">failed_output</span></code> argument.</p>
+<section id="example">
+<h3>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h3>
+<p>If a <em>PCollection</em> element is key-value pair (i.e. keyed stream), it can be batched in group using the <code class="docutils literal notranslate"><span class="pre">GroupIntoBatches</span></code> transform before it is connected into the main transform.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">apache_beam</span> <span class="k">as</span> <span class="nn">beam</span>
+<span class="kn">from</span> <span class="nn">apache_beam</span> <span class="kn">import</span> <span class="n">GroupIntoBatches</span>
+<span class="kn">from</span> <span class="nn">firehose_pyio.io</span> <span class="kn">import</span> <span class="n">WriteToFirehose</span>
+
+<span class="k">with</span> <span class="n">beam</span><span class="o">.</span><span class="n">Pipeline</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="n">pipeline_options</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+    <span class="p">(</span>
+        <span class="n">p</span>
+        <span class="o">|</span> <span class="n">beam</span><span class="o">.</span><span class="n">Create</span><span class="p">([(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;one&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;three&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;two&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;four&quot;</span><span class="p">)])</span>
+        <span class="o">|</span> <span class="n">GroupIntoBatches</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="o">|</span> <span class="n">WriteToFirehose</span><span class="p">(</span>
+            <span class="n">delivery_stream_name</span><span class="o">=</span><span class="n">delivery_stream_name</span><span class="p">,</span>
+            <span class="n">jsonify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">multiline</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">max_trials</span><span class="o">=</span><span class="mi">3</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>For a list element (i.e. unkeyed stream), we can apply the <code class="docutils literal notranslate"><span class="pre">BatchElements</span></code> transform instead.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">apache_beam</span> <span class="k">as</span> <span class="nn">beam</span>
+<span class="kn">from</span> <span class="nn">apache_beam.transforms.util</span> <span class="kn">import</span> <span class="n">BatchElements</span>
+<span class="kn">from</span> <span class="nn">firehose_pyio.io</span> <span class="kn">import</span> <span class="n">WriteToFirehose</span>
+
+<span class="k">with</span> <span class="n">beam</span><span class="o">.</span><span class="n">Pipeline</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="n">pipeline_options</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+    <span class="p">(</span>
+        <span class="n">p</span>
+        <span class="o">|</span> <span class="n">beam</span><span class="o">.</span><span class="n">Create</span><span class="p">([</span><span class="s2">&quot;one&quot;</span><span class="p">,</span> <span class="s2">&quot;two&quot;</span><span class="p">,</span> <span class="s2">&quot;three&quot;</span><span class="p">,</span> <span class="s2">&quot;four&quot;</span><span class="p">])</span>
+        <span class="o">|</span> <span class="n">BatchElements</span><span class="p">(</span><span class="n">min_batch_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_batch_size</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="o">|</span> <span class="n">WriteToFirehose</span><span class="p">(</span>
+            <span class="n">delivery_stream_name</span><span class="o">=</span><span class="n">delivery_stream_name</span><span class="p">,</span>
+            <span class="n">jsonify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">multiline</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">max_trials</span><span class="o">=</span><span class="mi">3</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>See <a class="reference external" href="https://beam-pyio.github.io/blog/2024/firehose-pyio-intro/">this post</a> for more examples.</p>
+</section>
+</section>
+<section id="contributing">
+<h2>Contributing<a class="headerlink" href="#contributing" title="Link to this heading"></a></h2>
+<p>Interested in contributing? Check out the contributing guidelines. Please note that this project is released with a Code of Conduct. By contributing to this project, you agree to abide by its terms.</p>
+</section>
+<section id="license">
+<h2>License<a class="headerlink" href="#license" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">firehose_pyio</span></code> was created as part of the <a class="reference external" href="https://github.com/beam-pyio">Apache Beam Python I/O Connectors</a> project. It is licensed under the terms of the Apache License 2.0 license.</p>
+</section>
+<section id="credits">
+<h2>Credits<a class="headerlink" href="#credits" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">firehose_pyio</span></code> was created with <a class="reference external" href="https://cookiecutter.readthedocs.io/en/latest/"><code class="docutils literal notranslate"><span class="pre">cookiecutter</span></code></a> and the <code class="docutils literal notranslate"><span class="pre">pyio-cookiecutter</span></code> <a class="reference external" href="https://github.com/beam-pyio/pyio-cookiecutter">template</a>.</p>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="changelog.html" class="btn btn-neutral float-right" title="Changelog" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Beam PyIO &lt;beam.pyio@gmail.com&gt;.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,93 @@
+firehose_pyio.boto3_client
+==========================
+
+.. py:module:: firehose_pyio.boto3_client
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   firehose_pyio.boto3_client.FirehoseClientError
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   firehose_pyio.boto3_client.FirehoseClient
+
+
+Module Contents
+---------------
+
+.. py:exception:: FirehoseClientError(message=None, code=None)
+
+   Bases: :py:obj:`Exception`
+
+
+   Common base class for all non-exit exceptions.
+
+
+   .. py:attribute:: message
+
+
+   .. py:attribute:: code
+
+
+.. py:class:: FirehoseClient(options: Union[firehose_pyio.options.FirehoseOptions, dict])
+
+   Bases: :py:obj:`object`
+
+
+   Wrapper for boto3 library.
+
+
+   .. py:attribute:: session
+
+
+   .. py:attribute:: client
+
+
+   .. py:method:: is_delivery_stream_active(delivery_stream_name: str)
+
+      Check if an Amazon Firehose delivery stream is active.
+
+      :param delivery_stream_name: Amazon Firehose delivery stream name.
+      :type delivery_stream_name: str
+
+      :raises FirehoseClientError: Firehose client error.
+
+      :returns: Whether or not the given Firehose delivery stream is active.
+      :rtype: (bool)
+
+
+
+   .. py:method:: put_record_batch(records: list, delivery_stream_name: str, jsonify: bool, multiline: bool)
+
+      Put records to an Amazon Firehose delivery stream in batch.
+
+      :param records: Records to put into a Firehose delivery stream.
+      :type records: list
+      :param delivery_stream_name: Amazon Firehose delivery stream name.
+      :type delivery_stream_name: str
+      :param jsonify: Whether to convert records into JSON.
+      :type jsonify: bool
+      :param multiline: Whether to add a new line at the end of each record.
+      :type multiline: bool
+
+      :raises FirehoseClientError: Firehose client error.
+
+      :returns: Boto3 response message.
+      :rtype: (Object)
+
+
+
+   .. py:method:: close()
+
+      Closes underlying endpoint connections.
+
+
+

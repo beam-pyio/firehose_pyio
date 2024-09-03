@@ -1,0 +1,30 @@
+firehose_pyio
+=============
+
+.. py:module:: firehose_pyio
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/firehose_pyio/boto3_client/index
+   /autoapi/firehose_pyio/io/index
+   /autoapi/firehose_pyio/options/index
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   firehose_pyio.__version__
+
+
+Package Contents
+----------------
+
+.. py:data:: __version__
+

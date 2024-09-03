@@ -1,0 +1,27 @@
+firehose_pyio.options
+=====================
+
+.. py:module:: firehose_pyio.options
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   firehose_pyio.options.FirehoseOptions
+
+
+Module Contents
+---------------
+
+.. py:class:: FirehoseOptions
+
+   Bases: :py:obj:`apache_beam.options.pipeline_options.PipelineOptions`
+
+
+   .. py:method:: _add_argparse_args(parser)
+      :classmethod:
+
+
+
