@@ -10,42 +10,31 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
-
 jobs:
   deploy_document:
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v2
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5        
-
-      - name: Set up Python
-        uses: actions/setup-python@v1
+      - name: Build HTML
         with:
-          python-version: "3.10"
+          pre-build-command: "apt install -y pandoc"
+        uses: ammaraskar/sphinx-action@0.4
 
-      - name: Build Document
-        run: |
-          pip install -r docs/requirements.txt
-          make html --directory docs/
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v1
         with:
-          path: './docs/_build/html'
+          name: html-docs
+          path: docs/_build/html/
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/_build/html
