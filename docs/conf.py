@@ -18,8 +18,8 @@ sys.path.insert(0, os.path.abspath("../"))
 # -- Project information -----------------------------------------------------
 
 project = "firehose_pyio"
-copyright = "2024, Beam PyIO <beam.pyio@gmail.com>"
-author = "Beam PyIO <beam.pyio@gmail.com>"
+copyright = "2024, Beam PyIO"
+author = "Beam PyIO"
 
 # -- General configuration ---------------------------------------------------
 
