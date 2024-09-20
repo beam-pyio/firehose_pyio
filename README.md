@@ -73,7 +73,7 @@ with beam.Pipeline(options=pipeline_options) as p:
     )
 ```
 
-See [this post](https://beam-pyio.github.io/blog/2024/firehose-pyio-intro/) for more examples.
+See [Introduction to Firehose PyIO Sink Connector](/blog/2024/firehose-pyio-intro/) for more examples.
 
 ## Contributing
 
